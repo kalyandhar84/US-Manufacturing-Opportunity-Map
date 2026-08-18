@@ -4,7 +4,7 @@ The Manufacturing Opportunity Index (MOI) is a local Streamlit POC that ranks 70
 
 It is a site-selection and industrial-demand lens, not a licensed real-estate product and not a census of every US establishment. Colliers’ Q2 2026 print (demand over new supply for the first time since 2022; national vacancy 7.3%) is the market context the UI cites. The math is a five-pillar metro score plus a cluster overlay; the company map is a separate federal-directory layer.
 
-This document describes the system as it exists now: curated metro seed → optional Census ACS blend → SQLite → in-process scoring → read-only Streamlit UI, with EPA TRI, USDA FSIS, and OSHA ITA plants loaded by `refresh_data.py`.
+This document describes the system as it exists now: curated metro seed → optional Census ACS blend → SQLite → in-process scoring → read-only Streamlit UI, with EPA TRI, USDA FSIS, and OSHA ITA plants loaded by `refresh_data.py`. GitHub-rendered overview diagrams are in the [README Architecture section](README.md#architecture).
 
 ---
 
