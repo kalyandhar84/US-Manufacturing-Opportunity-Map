@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: US Manufacturing Opportunity Map
+message: If you use this software, please cite it as below.
+type: software
+authors:
+  - family-names: Dhar
+    given-names: Kalyan
+url: https://github.com/kalyandhar84/US-Manufacturing-Opportunity-Map
+repository-code: https://github.com/kalyandhar84/US-Manufacturing-Opportunity-Map
+license: MIT
+version: 0.1.0
+date-released: "2026-08-18"
+abstract: >-
+  Interactive Streamlit map that ranks 70 US metros for manufacturing
+  site selection and industrial demand across automotive, warehousing,
+  food manufacturing, battery manufacturing, semiconductors, distribution
+  centers, and materials handling and forklifts.
+keywords:
+  - manufacturing
+  - site-selection
+  - industrial-real-estate
+  - streamlit
+  - opportunity-index

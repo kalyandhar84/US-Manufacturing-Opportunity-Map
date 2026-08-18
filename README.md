@@ -1,8 +1,21 @@
-# Manufacturing Opportunity Index
+# US Manufacturing Opportunity Map
 
-Interactive US metro map that scores markets for **automotive**, **warehousing**, **food manufacturing**, **battery manufacturing**, **semiconductors**, **distribution centers**, and **materials handling & forklifts**.
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.45%2B-FF4B4B.svg)](https://streamlit.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Architecture](https://img.shields.io/badge/docs-ARCHITECTURE.md-informational)](ARCHITECTURE.md)
 
-The industrial property market is showing renewed demand. Colliers reports US industrial demand exceeded new supply in Q2 2026 for the first time since 2022 — with manufacturing, 3PLs, food and beverage, and supply-chain diversification back in the occupier mix. This app is a site-selection and industrial-demand lens for that cycle.
+The **US Manufacturing Opportunity Map** (Manufacturing Opportunity Index) is an interactive Streamlit app that ranks 70 US metros for **manufacturing site selection** and **industrial real estate demand**. It scores markets for automotive, warehousing, food manufacturing, battery manufacturing, semiconductors, distribution centers, and materials handling & forklifts using Census ACS, EPA TRI, USDA FSIS, and OSHA ITA.
+
+Built for manufacturers, industrial investors, site-selection consultants, economic development organizations, 3PL and logistics teams, industrial real estate brokers, and materials-handling / forklift dealers.
+
+The industrial property market is showing renewed demand. Colliers reports US industrial demand exceeded new supply in Q2 2026 for the first time since 2022 — with manufacturing, 3PLs, food and beverage, and supply-chain diversification back in the occupier mix.
+
+## Who it's for
+
+Manufacturers, investors, consultants, EDOs, logistics companies, industrial real estate teams, and equipment dealers. The audience lens changes the narrative, not the math.
+
+**Industries scored:** automotive · warehousing · food manufacturing · battery manufacturing · semiconductors · distribution centers · materials handling & forklifts
 
 ## Run
 
@@ -149,6 +162,6 @@ Switch to **Equal-weight pillars** to see a simple average of the five pillars (
 
 Census ACS 1-year plus named plants and warehouses from **EPA TRI 2024**, the **USDA FSIS MPI directory**, and **OSHA ITA** Form 300A (mapped with Census ZIP centroids). `refresh_data.py` downloads those files into `data/raw/` and loads them into SQLite.
 
-## Audience
+## License
 
-Manufacturers, investors, consultants, economic development organizations, logistics companies, industrial real estate teams, and equipment dealers. The audience lens changes the narrative, not the math.
+MIT — see [LICENSE](LICENSE).

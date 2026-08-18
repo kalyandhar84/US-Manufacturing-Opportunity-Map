@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "us-manufacturing-opportunity-map"
+version = "0.1.0"
+description = "Interactive Streamlit map ranking 70 US metros for manufacturing site selection and industrial demand."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Kalyan Dhar" }]
+requires-python = ">=3.10"
+keywords = [
+    "manufacturing",
+    "site-selection",
+    "industrial-real-estate",
+    "streamlit",
+    "supply-chain",
+    "logistics",
+    "warehousing",
+    "automotive",
+    "semiconductors",
+    "battery",
+    "food-manufacturing",
+    "forklift",
+    "materials-handling",
+    "opportunity-index",
+    "us-metros",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Office/Business",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "streamlit>=1.45.0",
+    "plotly>=5.24.0",
+    "pandas>=2.2.0",
+    "numpy>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/kalyandhar84/US-Manufacturing-Opportunity-Map"
+Repository = "https://github.com/kalyandhar84/US-Manufacturing-Opportunity-Map"
+Documentation = "https://github.com/kalyandhar84/US-Manufacturing-Opportunity-Map/blob/main/ARCHITECTURE.md"
+
+[tool.setuptools]
+packages = []
