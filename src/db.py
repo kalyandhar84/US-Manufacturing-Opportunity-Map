@@ -290,6 +290,35 @@ def finish_refresh_run(
     conn.commit()
 
 
+def checkpoint_wal(conn: sqlite3.Connection) -> None:
+    """Flush WAL so Streamlit readers see the latest metros and companies."""
+    conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+
+
+def record_last_refresh_stamp(when: str | None = None) -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    (DATA_DIR / "last_refresh.txt").write_text(when or utc_now(), encoding="utf-8")
+
+
+def latest_successful_refresh(conn: sqlite3.Connection | None = None) -> dict[str, Any] | None:
+    own = conn is None
+    conn = conn or connect()
+    try:
+        row = conn.execute(
+            """
+            SELECT id, started_at, finished_at, status, mode, metros_updated, notes
+            FROM refresh_runs
+            WHERE status IN ('ok', 'partial') AND finished_at IS NOT NULL
+            ORDER BY finished_at DESC
+            LIMIT 1
+            """
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        if own:
+            conn.close()
+
+
 def latest_refresh(conn: sqlite3.Connection | None = None) -> dict[str, Any] | None:
     own = conn is None
     conn = conn or connect()

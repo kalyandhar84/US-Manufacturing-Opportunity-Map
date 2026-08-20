@@ -16,7 +16,7 @@ SKIP_DIR_NAMES = {
     "dist",
     ".cursor",
 }
-SKIP_FILE_NAMES = {".env", ".env.local"}
+SKIP_FILE_NAMES = {".env", ".env.local", "last_refresh.txt"}
 SKIP_SUFFIXES = {".pyc", ".sqlite-wal", ".sqlite-shm"}
 
 

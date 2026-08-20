@@ -622,8 +622,22 @@ def filter_company_view(frame: pd.DataFrame, zone: str, size_choice: str | None,
     return view
 
 
-@st.cache_data(ttl="30m", show_spinner=False)
-def cached_companies() -> pd.DataFrame:
+def sqlite_mtime() -> float:
+    try:
+        return DB_PATH.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_metros(mtime: float) -> pd.DataFrame:
+    del mtime
+    return metros_frame()
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_companies(mtime: float) -> pd.DataFrame:
+    del mtime
     return load_companies_frame()
 
 
@@ -635,8 +649,9 @@ if "selected_metro" not in st.session_state:
 if "selected_company" not in st.session_state:
     st.session_state.selected_company = "hyundai-savannah"
 
-raw = metros_frame()
-companies = cached_companies()
+db_mtime = sqlite_mtime()
+raw = cached_metros(db_mtime)
+companies = cached_companies(db_mtime)
 news_all = load_company_news()
 projects = load_projects_frame()
 market = load_industrial_market()

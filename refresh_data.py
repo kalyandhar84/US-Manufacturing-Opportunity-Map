@@ -23,9 +23,11 @@ import pandas as pd
 from src.db import (
     DB_PATH,
     ROOT,
+    checkpoint_wal,
     connect,
     finish_refresh_run,
     insert_metrics,
+    record_last_refresh_stamp,
     seed_company_layers,
     seed_from_registry,
     start_refresh_run,
@@ -313,6 +315,8 @@ def refresh(mode: str, blend_weight: float) -> dict[str, Any]:
         )
 
         finish_refresh_run(conn, run_id, status, metros_updated, "; ".join(notes))
+        if status in ("ok", "partial"):
+            record_last_refresh_stamp()
         return {
             "status": status,
             "metros_updated": metros_updated,
@@ -323,6 +327,10 @@ def refresh(mode: str, blend_weight: float) -> dict[str, Any]:
         finish_refresh_run(conn, run_id, "error", metros_updated, str(exc))
         raise
     finally:
+        try:
+            checkpoint_wal(conn)
+        except Exception:
+            pass
         conn.close()
 
 

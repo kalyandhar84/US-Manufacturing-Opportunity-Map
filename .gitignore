@@ -8,6 +8,8 @@ __pycache__/
 data/*.sqlite
 !data/moi.sqlite
 data/*.sqlite-wal
+data/*.sqlite-shm
+data/last_refresh.txt
 data/raw/
 mail/*.txt
 dist/

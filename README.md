@@ -34,11 +34,15 @@ python refresh_data.py              # Census ACS + seed blend into SQLite
 python refresh_data.py --seed-only  # seed metros, then download TRI / FSIS / OSHA ITA plants
 ```
 
-Optional: copy `.env.example` to `.env` and set `CENSUS_API_KEY` (free at https://api.census.gov/data/key_signup.html). Without a key, refresh still writes the seed panel, companies, news, and Wave 3 layers to SQLite.
+Optional: copy `.env.example` to `.env` and set `CENSUS_API_KEY` (free at https://api.census.gov/data/key_signup.html). Without a key, refresh still writes the seed panel, companies, news, Wave 3 layers, and TRI / FSIS / OSHA ITA plants to SQLite. ACS metro scores stay on the curated seed until a key is set.
 
 Open [http://localhost:8501](http://localhost:8501) — **Opportunity map** for metro scores, **Companies and news** to click plants and DCs (Eastern zone + size filters), **Contact us** for the GitHub repo and a note form.
 
-Azure App Service (Linux, Python 3.12) starts with `bash startup.sh`, which binds Streamlit to `0.0.0.0` and `PORT`. Package with `python scripts/package_app.py` (includes `data/moi.sqlite`, excludes `.venv`, `data/raw/`, and `.env`) and deploy with `scripts/deploy.ps1`.
+Azure App Service (Linux, Python 3.12) starts with `bash startup.sh`. That script launches `refresh_scheduler.py` in a **separate process**, then execs Streamlit on `0.0.0.0` and `PORT` / `WEBSITES_PORT` (8000). The scheduler reads the last successful `refresh_runs` row (or `data/last_refresh.txt`). It runs `python refresh_data.py` (full refresh, not `--seed-only`) only when this host has never succeeded or the last success is at least 7 days old — restarts and deploys do not re-hit EPA/OSHA when the last success is younger than 7 days. After a success it sleeps in 1-hour chunks until the next due time. Failures are logged to stdout and retried after 6 hours. Contact files in `mail/` are not touched. Always On must stay enabled so the scheduler is not frozen.
+
+Optional App Setting: `CENSUS_API_KEY`. If unset, weekly refresh still updates TRI, FSIS, and ITA.
+
+Package with `python scripts/package_app.py` (includes `data/moi.sqlite`, excludes `.venv`, `data/raw/`, `mail/*.txt`, and `.env`) and deploy with `scripts/deploy.ps1`.
 
 ## Public URL and Google search
 
