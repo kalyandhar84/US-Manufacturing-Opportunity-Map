@@ -191,21 +191,26 @@ def weighted_pillar_score(row: pd.Series, weights: dict[str, float]) -> float:
 
 def opportunity_index(
     row: pd.Series,
-    industry_key: str,
+    industry_key: str | None,
     custom_weights: dict[str, float] | None = None,
     cluster_blend: float | None = None,
 ) -> float:
+    if not industry_key or industry_key not in INDUSTRIES:
+        weights = custom_weights or EQUAL_WEIGHTS
+        return weighted_pillar_score(row, weights)
     profile = INDUSTRIES[industry_key]
     weights = custom_weights or profile.weights
     blend = profile.cluster_blend if cluster_blend is None else cluster_blend
     pillars = weighted_pillar_score(row, weights)
+    if blend <= 0:
+        return pillars
     cluster = float(row[profile.key])
     return (1.0 - blend) * pillars + blend * cluster
 
 
 def score_metros(
     metros: pd.DataFrame,
-    industry_key: str,
+    industry_key: str | None,
     custom_weights: dict[str, float] | None = None,
     cluster_blend: float | None = None,
 ) -> pd.DataFrame:
@@ -219,10 +224,18 @@ def score_metros(
     return df.sort_values(["score", "short"], ascending=[False, True]).reset_index(drop=True)
 
 
-def contribution_breakdown(row: pd.Series, industry_key: str, custom_weights: dict[str, float] | None = None) -> pd.DataFrame:
-    profile = INDUSTRIES[industry_key]
-    weights = custom_weights or profile.weights
-    blend = profile.cluster_blend
+def contribution_breakdown(
+    row: pd.Series,
+    industry_key: str | None,
+    custom_weights: dict[str, float] | None = None,
+    cluster_blend: float | None = None,
+) -> pd.DataFrame:
+    profile = INDUSTRIES.get(industry_key) if industry_key else None
+    weights = custom_weights or (profile.weights if profile else EQUAL_WEIGHTS)
+    if cluster_blend is None:
+        blend = profile.cluster_blend if profile else 0.0
+    else:
+        blend = cluster_blend
     total_w = sum(weights.values()) or 1.0
     rows = []
     for pillar in PILLARS:
@@ -236,13 +249,14 @@ def contribution_breakdown(row: pd.Series, industry_key: str, custom_weights: di
                 "contribution": value * weight * (1.0 - blend),
             }
         )
-    cluster_val = float(row[profile.key])
-    rows.append(
-        {
-            "component": f"{profile.label} cluster",
-            "raw": cluster_val,
-            "weight": blend,
-            "contribution": cluster_val * blend,
-        }
-    )
+    if profile and blend > 0:
+        cluster_val = float(row[profile.key])
+        rows.append(
+            {
+                "component": f"{profile.label} cluster",
+                "raw": cluster_val,
+                "weight": blend,
+                "contribution": cluster_val * blend,
+            }
+        )
     return pd.DataFrame(rows)

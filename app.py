@@ -25,7 +25,18 @@ from src.db import (
     metro_count,
 )
 from src.metros import metros_frame
+from src.industry_select import (
+    DEFAULT_INDUSTRY_KEYS,
+    build_industry_options,
+    filter_companies_by_industries,
+    sanitize_selection,
+    scoring_caption,
+    scoring_params,
+    selected_moi_keys,
+    selection_summary,
+)
 from src.scoring import (
+    EQUAL_WEIGHTS,
     INDUSTRIES,
     PILLAR_LABELS,
     PILLARS,
@@ -522,8 +533,13 @@ def radar_figure(row: pd.Series) -> go.Figure:
     return fig
 
 
-def contribution_figure(row: pd.Series, industry_key: str, weights: dict[str, float]) -> go.Figure:
-    contrib = contribution_breakdown(row, industry_key, weights).sort_values("contribution")
+def contribution_figure(
+    row: pd.Series,
+    industry_key: str | None,
+    weights: dict[str, float],
+    cluster_blend: float | None = None,
+) -> go.Figure:
+    contrib = contribution_breakdown(row, industry_key, weights, cluster_blend).sort_values("contribution")
     fig = go.Figure(
         go.Bar(
             x=contrib["contribution"],
@@ -600,17 +616,17 @@ def audience_take(audience: str, industry_label: str, top: pd.DataFrame) -> str:
     return templates[audience]
 
 
-def why_this_metro(row: pd.Series, industry_key: str) -> list[str]:
-    profile = INDUSTRIES[industry_key]
+def why_this_metro(row: pd.Series, industry_key: str | None) -> list[str]:
     ranked_pillars = sorted(PILLARS, key=lambda p: float(row[p]), reverse=True)
     top_p, mid_p = ranked_pillars[0], ranked_pillars[1]
     weakest = ranked_pillars[-1]
     lines = [
         f"Strongest structural pillar is {PILLAR_LABELS[top_p]} ({int(row[top_p])}), "
         f"with {PILLAR_LABELS[mid_p]} close behind ({int(row[mid_p])}).",
-        f"{profile.label} cluster affinity is {int(row[industry_key])}/100.",
-        f"Watch-out: {PILLAR_LABELS[weakest]} scores {int(row[weakest])}.",
     ]
+    if industry_key and industry_key in INDUSTRIES:
+        lines.append(f"{INDUSTRIES[industry_key].label} cluster affinity is {int(row[industry_key])}/100.")
+    lines.append(f"Watch-out: {PILLAR_LABELS[weakest]} scores {int(row[weakest])}.")
     return lines + list(row["highlights"])
 
 
@@ -752,6 +768,7 @@ if "selected_metro" not in st.session_state:
 if "selected_company" not in st.session_state:
     st.session_state.selected_company = "hyundai-savannah"
 st.session_state.setdefault("app_page", PAGES[0])
+st.session_state.setdefault("selected_industries", list(DEFAULT_INDUSTRY_KEYS))
 
 db_mtime = sqlite_mtime()
 raw = cached_metros(db_mtime)
@@ -759,18 +776,39 @@ companies = cached_companies(db_mtime)
 news_all = load_company_news()
 projects = load_projects_frame()
 market = load_industrial_market()
+industry_catalog = build_industry_options(companies)
+
+
+def _keep_industry_selection() -> None:
+    st.session_state.selected_industries = sanitize_selection(
+        st.session_state.get("selected_industries"),
+        industry_catalog.keys,
+    )
+
 
 with st.sidebar:
     st.markdown("### Filters")
     st.caption("Industry, audience, and index weights for this session.")
-    industry_key = st.selectbox(
-        "Industry",
-        options=list(INDUSTRIES.keys()),
-        format_func=lambda k: INDUSTRIES[k].label,
-        index=0,
+    st.multiselect(
+        "Industries",
+        options=industry_catalog.keys,
+        format_func=lambda key: industry_catalog.labels.get(key, key),
+        key="selected_industries",
+        on_change=_keep_industry_selection,
+        persist_state="session",
+        width="stretch",
+        placeholder="Choose one or more industries",
+        help=(
+            "MOI lenses are pinned at the top. The rest are the 100 NAICS codes with the "
+            "most facilities in SQLite. A site matches if it fits any selected lens or NAICS code."
+        ),
     )
-    profile = INDUSTRIES[industry_key]
-    st.caption(profile.blurb)
+    selected_industries = sanitize_selection(
+        st.session_state.get("selected_industries"),
+        industry_catalog.keys,
+    )
+    moi_keys = selected_moi_keys(selected_industries)
+    industry_label = selection_summary(selected_industries)
     audience = st.selectbox("Audience lens", list(AUDIENCES.keys()), index=0)
     region = st.selectbox("Region", ["United States", "Midwest", "South", "West", "Northeast"])
     min_pop = st.select_slider(
@@ -783,19 +821,29 @@ with st.sidebar:
     mode = st.radio(
         "Score mode",
         ["Industry-weighted MOI", "Equal-weight pillars"],
-        help="Equal-weight averages the five pillars. Industry-weighted applies cluster affinity.",
+        help="Equal-weight averages the five pillars. Industry-weighted uses the first selected MOI lens.",
     )
+    equal_weight = mode == "Equal-weight pillars"
+    scoring_key, weights, blend = scoring_params(selected_industries, equal_weight)
     customize = st.toggle("Customize pillar weights", value=False)
-    weights = dict(profile.weights)
-    blend = profile.cluster_blend
     if customize:
         st.caption("Weights are normalized automatically.")
         for pillar in PILLARS:
-            weights[pillar] = st.slider(PILLAR_LABELS[pillar], 0.0, 1.0, float(profile.weights[pillar]), 0.01)
-        blend = st.slider("Cluster overlay", 0.0, 0.40, float(profile.cluster_blend), 0.01)
-    if mode == "Equal-weight pillars":
-        weights = {p: 0.2 for p in PILLARS}
+            weights[pillar] = st.slider(PILLAR_LABELS[pillar], 0.0, 1.0, float(weights[pillar]), 0.01)
+        if scoring_key:
+            blend = st.slider("Cluster overlay", 0.0, 0.40, float(blend), 0.01)
+        else:
+            st.caption("Cluster overlay applies only when an MOI lens is selected.")
+    if equal_weight:
+        weights = dict(EQUAL_WEIGHTS)
         blend = 0.0
+        scoring_key = scoring_key if moi_keys else None
+    score_note = scoring_caption(selected_industries, equal_weight)
+    st.caption(score_note)
+    if len(moi_keys) == 1:
+        st.caption(INDUSTRIES[moi_keys[0]].blurb)
+    elif not moi_keys:
+        st.caption("Company lists follow the selected NAICS codes. Rankings stay on the 70-metro panel.")
     refresh = latest_refresh()
     if refresh:
         when = (refresh.get("finished_at") or refresh.get("started_at") or "")[:16].replace("T", " ")
@@ -812,7 +860,7 @@ if panel.empty:
     st.warning("No metros match these filters.")
     st.stop()
 
-scored = score_metros(panel, industry_key, weights, blend)
+scored = score_metros(panel, scoring_key, weights, blend)
 if not market.empty:
     scored = scored.merge(market[["cbsa", "vacancy_pct", "rent_index"]], on="cbsa", how="left")
 top = scored.iloc[0]
@@ -844,8 +892,13 @@ page = st.segmented_control(
 if page not in PAGES:
     page = PAGES[0]
 
-industry_cos = companies[companies["industry"] == industry_key].copy() if not companies.empty else companies
-industry_projects = projects[projects["industry"] == industry_key] if not projects.empty else projects
+industry_cos = filter_companies_by_industries(companies, selected_industries) if not companies.empty else companies
+if not projects.empty and moi_keys:
+    industry_projects = projects[projects["industry"].isin(moi_keys)]
+elif not projects.empty:
+    industry_projects = projects.iloc[0:0]
+else:
+    industry_projects = projects
 capex_sum = float(industry_projects["capex_b"].sum()) if not industry_projects.empty else 0.0
 jobs_sum = int(industry_projects["jobs"].sum()) if not industry_projects.empty else 0
 
@@ -854,7 +907,7 @@ if page == "Opportunity map":
         f"""
         <p class="hero-sub">
             Daylight view of metro scores and the companies already on the ground for
-            {profile.label.lower()}. Click the map. Built for {AUDIENCES[audience]}.
+            {industry_label}. Click the map. Built for {AUDIENCES[audience]}.
         </p>
         <div class="market-banner">
             <strong>Wave 3 layer · Q2 2026 industrial reset.</strong>
@@ -869,11 +922,11 @@ if page == "Opportunity map":
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Top metro", f"{top['short']}", f"MOI {top['score']:.1f}", border=True)
     k2.metric("Panel median", f"{median:.1f}", border=True)
-    k3.metric("Companies mapped", f"{len(industry_cos)}", profile.label, border=True)
+    k3.metric("Companies mapped", f"{len(industry_cos)}", industry_label, border=True)
     k4.metric("Announced capex", f"${capex_sum:.0f}B", f"{jobs_sum:,} jobs", border=True)
     k5.metric("Natl. vacancy", "7.3%", "Colliers Q2 2026", border=True)
 
-    st.markdown(f'<div class="section-label">{profile.label} · {region} · click a metro</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-label">{industry_label} · {region} · click a metro</div>', unsafe_allow_html=True)
     fig = map_figure(scored, st.session_state.selected_metro)
     event = st.plotly_chart(
         fig,
@@ -886,13 +939,20 @@ if page == "Opportunity map":
     picked = selection_id(event, "short")
     if picked:
         st.session_state.selected_metro = picked
-    st.caption("Bubble size and color are the Manufacturing Opportunity Index. The map is the primary workspace — rankings sit below.")
+    st.caption(
+        "Bubble size and color are the Manufacturing Opportunity Index. Rankings stay on the 70-metro panel. "
+        + score_note
+    )
 
     st.selectbox("Metro brief", options=options, key="selected_metro")
     selected = st.session_state.selected_metro
     row = scored[scored["short"] == selected].iloc[0]
-    local_projects = projects[projects["metro"] == selected] if not projects.empty else projects
-    local_cos = companies[companies["metro"] == selected] if not companies.empty else companies
+    local_projects = (
+        industry_projects[industry_projects["metro"] == selected]
+        if not industry_projects.empty
+        else industry_projects
+    )
+    local_cos = industry_cos[industry_cos["metro"] == selected] if not industry_cos.empty else industry_cos
 
     table_col, brief_col = st.columns([1.25, 1], gap="large")
     with table_col:
@@ -929,7 +989,7 @@ if page == "Opportunity map":
         st.download_button(
             "Download rankings CSV",
             data=table.to_csv(index=False).encode("utf-8"),
-            file_name=f"moi_{industry_key}_{region.replace(' ', '_').lower()}.csv",
+            file_name=f"moi_{(scoring_key or 'equal')}_{region.replace(' ', '_').lower()}.csv",
             mime="text/csv",
         )
 
@@ -958,7 +1018,7 @@ if page == "Opportunity map":
             st.caption("Backcast of equal-weight MOI, 2021–2026. Not a live QCEW series — Wave 3 placeholder until BLS lands.")
         st.plotly_chart(radar_figure(row), width="stretch", config={"displayModeBar": False})
         st.markdown("**Why this metro**")
-        for line in why_this_metro(row, industry_key):
+        for line in why_this_metro(row, scoring_key):
             st.markdown(f"- {line}")
         if not local_projects.empty:
             st.markdown("**Announced capex (Wave 3)**")
@@ -970,9 +1030,13 @@ if page == "Opportunity map":
     st.markdown('<div class="section-label">Score contribution</div>', unsafe_allow_html=True)
     left, right = st.columns([1, 1.15], gap="large")
     with left:
-        st.plotly_chart(contribution_figure(row, industry_key, weights), width="stretch", config={"displayModeBar": False})
+        st.plotly_chart(
+            contribution_figure(row, scoring_key, weights, blend),
+            width="stretch",
+            config={"displayModeBar": False},
+        )
     with right:
-        st.write(audience_take(audience, profile.label, scored))
+        st.write(audience_take(audience, industry_label, scored))
         compare_to = st.multiselect(
             "Compare metros",
             options=[m for m in options if m != selected],
@@ -1000,11 +1064,11 @@ if page == "Opportunity map":
 
 elif page == "Companies and news":
     st.markdown(
-        f'<div class="section-label">{profile.label} facilities</div>',
+        f'<div class="section-label">{industry_label} facilities</div>',
         unsafe_allow_html=True,
     )
     if industry_cos.empty:
-        st.info("No companies for this industry. Run `python refresh_data.py --seed-only` to ingest TRI, FSIS, and OSHA ITA.")
+        st.info("No companies match these industries. Run `python refresh_data.py --seed-only` to ingest TRI, FSIS, and OSHA ITA, or pick another NAICS code.")
     else:
         if "source" not in industry_cos.columns:
             industry_cos = industry_cos.copy()
@@ -1055,7 +1119,7 @@ elif page == "Companies and news":
             render_company_analytics(view)
             if map_note:
                 st.caption(map_note)
-            st.caption(f"{len(industry_cos):,} {profile.label} sites nationwide. Click a site on the map.")
+            st.caption(f"{len(industry_cos):,} sites match the selected industries nationwide. Click a site on the map.")
             view_ids = set(view["id"])
             if st.session_state.selected_company not in view_ids:
                 st.session_state.selected_company = view.iloc[0]["id"]
@@ -1145,9 +1209,9 @@ elif page == "Companies and news":
                     }
                 )
                 st.dataframe(show, hide_index=True, width="stretch", height=360)
-                st.markdown("**Announced capex in this industry**")
+                st.markdown("**Announced capex in this selection**")
                 if industry_projects.empty:
-                    st.caption("No Wave 3 projects tagged to this industry.")
+                    st.caption("No Wave 3 projects tagged to the selected MOI lenses.")
                 else:
                     pshow = industry_projects[["company", "metro", "year", "capex_b", "jobs", "status"]].rename(
                         columns={
@@ -1161,8 +1225,10 @@ elif page == "Companies and news":
                     )
                     st.dataframe(pshow, hide_index=True, width="stretch", height=220)
 
-            st.markdown('<div class="section-label">Recent headlines · tracked campuses in this industry</div>', unsafe_allow_html=True)
-            industry_news = news_all[news_all["industry"] == industry_key] if not news_all.empty else news_all
+            st.markdown('<div class="section-label">Recent headlines · tracked campuses in this selection</div>', unsafe_allow_html=True)
+            industry_news = news_all.iloc[0:0]
+            if not news_all.empty and not industry_cos.empty:
+                industry_news = news_all[news_all["company_id"].isin(industry_cos["id"])]
             if not industry_news.empty:
                 feed = industry_news[["published_on", "company_name", "metro", "headline", "source"]].rename(
                     columns={
@@ -1179,10 +1245,20 @@ elif page == "Contact us":
     render_contact()
 
 with st.expander("Methodology and Wave 3 data", icon=":material/menu_book:"):
+    lens_note = (
+        f" for {INDUSTRIES[scoring_key].label}"
+        if scoring_key
+        else " (equal-weight pillars when no MOI lens is selected)"
+    )
     st.markdown(
         textwrap.dedent(
             f"""
-            **MOI** = `(1 − λ) · Σ wᵢ · Pillarᵢ + λ · Cluster` with λ = {profile.cluster_blend:.0%} for {profile.label}.
+            **MOI** = `(1 − λ) · Σ wᵢ · Pillarᵢ + λ · Cluster` with λ = {blend:.0%}{lens_note}.
+            Industry filters are a sidebar multiselect shared by Opportunity map and Companies and news.
+            MOI lenses stay pinned at the top. The other options are the 100 NAICS codes with the most
+            facilities in SQLite (6-digit when present; 3-digit FSIS 311 stays 311). A facility matches
+            any selected MOI key or NAICS code. Metro scores use the first selected MOI lens; NAICS-only
+            selections use equal-weight pillars.
 
             **Wave 3 (this build)**
             - Companies and public-development headlines in SQLite (`companies`, `company_news`)
