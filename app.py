@@ -115,7 +115,14 @@ ZONE_STATES: dict[str, frozenset[str] | None] = {
     "All US": None,
 }
 SIZE_FILTERS = ("All sizes", "Small", "Medium", "Large", "Extra Large")
+SIZE_ORDER = ("Small", "Medium", "Large", "Extra Large", "Unknown")
 MAP_POINT_CAP = 2000
+SOURCE_SHORT = {
+    "epa_tri": "TRI",
+    "usda_fsis": "FSIS",
+    "osha_ita": "ITA",
+    "curated": "Curated",
+}
 
 
 def inject_seo() -> None:
@@ -650,6 +657,74 @@ def filter_company_view(frame: pd.DataFrame, zone: str, size_choice: str | None,
     return view
 
 
+def render_company_analytics(view: pd.DataFrame) -> None:
+    n = len(view)
+    states = company_states(view)
+    state_n = int(states[states.str.len() == 2].nunique())
+    parents = (
+        view["parent"].fillna("").astype(str).str.strip()
+        if "parent" in view.columns
+        else pd.Series("", index=view.index)
+    )
+    parent_n = int(parents[parents != ""].nunique())
+    src = (
+        view["source"].fillna("unknown").astype(str)
+        if "source" in view.columns
+        else pd.Series("unknown", index=view.index)
+    )
+    src_short = src.map(SOURCE_SHORT)
+    src_short = src_short.fillna(src.str.replace("_", " ", regex=False))
+    src_counts = src_short.value_counts()
+    lead_src = str(src_counts.index[0]) if not src_counts.empty else "—"
+    lead_src_n = int(src_counts.iloc[0]) if not src_counts.empty else 0
+    metros = (
+        view["metro"].fillna("").astype(str).str.strip()
+        if "metro" in view.columns
+        else pd.Series("", index=view.index)
+    )
+    top_metros = metros[metros != ""].value_counts().head(8)
+    top_metro = str(top_metros.index[0]) if not top_metros.empty else "—"
+    top_metro_n = int(top_metros.iloc[0]) if not top_metros.empty else 0
+    sizes = (
+        view["size_class"].fillna("Unknown").astype(str)
+        if "size_class" in view.columns
+        else pd.Series("Unknown", index=view.index)
+    )
+    size_counts = sizes.value_counts()
+
+    st.markdown('<div class="section-label">This view</div>', unsafe_allow_html=True)
+    with st.container(horizontal=True):
+        st.metric("Sites in this view", f"{n:,}", border=True)
+        st.metric("States covered", f"{state_n}", border=True)
+        st.metric("Unique parents", f"{parent_n:,}", border=True)
+        st.metric("Top metro", top_metro, f"{top_metro_n:,} sites", border=True)
+        st.metric("Leading source", lead_src, f"{lead_src_n:,} sites", border=True)
+    src_line = " · ".join(f"{name} {int(count):,}" for name, count in src_counts.items())
+    size_line = " · ".join(
+        f"{label} {int(size_counts.get(label, 0)):,}"
+        for label in SIZE_ORDER
+        if int(size_counts.get(label, 0)) > 0
+    )
+    if src_line:
+        st.caption(f"Source mix · {src_line}")
+    if size_line:
+        st.caption(f"Size mix · {size_line}")
+    if top_metros.empty:
+        return
+    st.markdown("**Top metros by site count**")
+    metro_df = top_metros.rename_axis("Metro").reset_index(name="Sites")
+    st.bar_chart(
+        metro_df,
+        x="Sites",
+        y="Metro",
+        horizontal=True,
+        color="#2B6CB0",
+        sort=False,
+        width="stretch",
+        height=220,
+    )
+
+
 def sqlite_mtime() -> float:
     try:
         return DB_PATH.stat().st_mtime
@@ -769,29 +844,28 @@ page = st.segmented_control(
 if page not in PAGES:
     page = PAGES[0]
 
-st.markdown(
-    f"""
-    <p class="hero-sub">
-        Daylight view of metro scores and the companies already on the ground for
-        {profile.label.lower()}. Click the map. Built for {AUDIENCES[audience]}.
-    </p>
-    <div class="market-banner">
-        <strong>Wave 3 layer · Q2 2026 industrial reset.</strong>
-        US industrial demand exceeded new supply for the first time since 2022
-        (Colliers: 59 million sq ft absorbed, vacancy 7.3%). This view adds announced
-        capex, a company/news map, vacancy tilts, and a 2021–2026 score backcast.
-    </div>
-    <div class="caption-src">National vacancy print: Colliers U.S. Industrial Outlook, Q2 2026. Local vacancy is a model tilt, not licensed submarket data.</div>
-    """,
-    unsafe_allow_html=True,
-)
-
 industry_cos = companies[companies["industry"] == industry_key].copy() if not companies.empty else companies
 industry_projects = projects[projects["industry"] == industry_key] if not projects.empty else projects
 capex_sum = float(industry_projects["capex_b"].sum()) if not industry_projects.empty else 0.0
 jobs_sum = int(industry_projects["jobs"].sum()) if not industry_projects.empty else 0
 
-if page != "Contact us":
+if page == "Opportunity map":
+    st.markdown(
+        f"""
+        <p class="hero-sub">
+            Daylight view of metro scores and the companies already on the ground for
+            {profile.label.lower()}. Click the map. Built for {AUDIENCES[audience]}.
+        </p>
+        <div class="market-banner">
+            <strong>Wave 3 layer · Q2 2026 industrial reset.</strong>
+            US industrial demand exceeded new supply for the first time since 2022
+            (Colliers: 59 million sq ft absorbed, vacancy 7.3%). This view adds announced
+            capex, a company/news map, vacancy tilts, and a 2021–2026 score backcast.
+        </div>
+        <div class="caption-src">National vacancy print: Colliers U.S. Industrial Outlook, Q2 2026. Local vacancy is a model tilt, not licensed submarket data.</div>
+        """,
+        unsafe_allow_html=True,
+    )
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Top metro", f"{top['short']}", f"MOI {top['score']:.1f}", border=True)
     k2.metric("Panel median", f"{median:.1f}", border=True)
@@ -799,7 +873,6 @@ if page != "Contact us":
     k4.metric("Announced capex", f"${capex_sum:.0f}B", f"{jobs_sum:,} jobs", border=True)
     k5.metric("Natl. vacancy", "7.3%", "Colliers Q2 2026", border=True)
 
-if page == "Opportunity map":
     st.markdown(f'<div class="section-label">{profile.label} · {region} · click a metro</div>', unsafe_allow_html=True)
     fig = map_figure(scored, st.session_state.selected_metro)
     event = st.plotly_chart(
@@ -927,7 +1000,7 @@ if page == "Opportunity map":
 
 elif page == "Companies and news":
     st.markdown(
-        f'<div class="section-label">{profile.label} facilities · EPA TRI + USDA FSIS + OSHA ITA · click a site</div>',
+        f'<div class="section-label">{profile.label} facilities</div>',
         unsafe_allow_html=True,
     )
     if industry_cos.empty:
@@ -970,21 +1043,19 @@ elif page == "Companies and news":
             persist_state="session",
         )
         view = filter_company_view(industry_cos, zone, size_choice or "All sizes", query)
-        src_counts = view["source"].fillna("unknown").value_counts() if not view.empty else pd.Series(dtype=int)
         map_view = view
         map_note = ""
         if len(view) > MAP_POINT_CAP:
             map_view = view.sample(n=MAP_POINT_CAP, random_state=1)
-            map_note = f" Map plots {len(map_view):,} of {len(view):,} filtered sites."
-        st.caption(
-            f"{len(map_view):,} shown of {len(view):,} after filters · {len(industry_cos):,} {profile.label} nationwide. "
-            + " · ".join(f"{k} {int(v):,}" for k, v in src_counts.items())
-            + map_note
-        )
+            map_note = f"Map plots {len(map_view):,} of {len(view):,} filtered sites."
 
         if view.empty:
             st.info("No facilities match this zone, size, and search. Try All US or All sizes.")
         else:
+            render_company_analytics(view)
+            if map_note:
+                st.caption(map_note)
+            st.caption(f"{len(industry_cos):,} {profile.label} sites nationwide. Click a site on the map.")
             view_ids = set(view["id"])
             if st.session_state.selected_company not in view_ids:
                 st.session_state.selected_company = view.iloc[0]["id"]
