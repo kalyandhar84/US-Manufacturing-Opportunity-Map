@@ -1,0 +1,12 @@
+.git
+.venv
+.env
+__pycache__
+*.pyc
+.pytest_cache
+data/raw
+mail/*.txt
+dist
+.cursor
+*.sqlite-wal
+*.sqlite-shm

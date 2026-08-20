@@ -36,7 +36,13 @@ python refresh_data.py --seed-only  # seed metros, then download TRI / FSIS / OS
 
 Optional: copy `.env.example` to `.env` and set `CENSUS_API_KEY` (free at https://api.census.gov/data/key_signup.html). Without a key, refresh still writes the seed panel, companies, news, and Wave 3 layers to SQLite.
 
-Open [http://localhost:8501](http://localhost:8501) — **Opportunity map** for metro scores, **Companies and news** to click plants and DCs (Eastern zone + size filters).
+Open [http://localhost:8501](http://localhost:8501) — **Opportunity map** for metro scores, **Companies and news** to click plants and DCs (Eastern zone + size filters), **Contact us** for the GitHub repo and a note form.
+
+Azure App Service (Linux, Python 3.12) starts with `bash startup.sh`, which binds Streamlit to `0.0.0.0` and `PORT`. Package with `python scripts/package_app.py` (includes `data/moi.sqlite`, excludes `.venv`, `data/raw/`, and `.env`) and deploy with `scripts/deploy.ps1`.
+
+## Public URL and Google search
+
+This is a Streamlit app, not a static site. After App Service is live, Google indexes the public HTTPS URL (`https://us-opportunities.azurewebsites.net`), not the GitHub README. The tab title, meta description, Open Graph tags, and `robots.txt` (`/robots.txt` and `static/robots.txt`) are there so crawlers can still describe the US manufacturing opportunity map for site selection, industrial real estate, forklifts, warehousing, battery, and semiconductors.
 
 ## Architecture
 

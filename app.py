@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import json
 import textwrap
 from urllib.parse import urlparse
 
@@ -11,6 +12,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.companies import is_search_website
+from src.contact import save_contact_message, validate_contact
 
 from src.db import (
     DB_PATH,
@@ -32,8 +34,15 @@ from src.scoring import (
     weighted_pillar_score,
 )
 
+PAGE_TITLE = "US Manufacturing Opportunity Map"
+PAGE_DESCRIPTION = (
+    "US manufacturing opportunity map for site selection and industrial real estate. "
+    "Rank metros and plants for forklifts, warehousing, battery manufacturing, and semiconductors."
+)
+GITHUB_REPO = "https://github.com/kalyandhar84/US-Manufacturing-Opportunity-Map"
+
 st.set_page_config(
-    page_title="Manufacturing Opportunity Index",
+    page_title=PAGE_TITLE,
     page_icon=":material/factory:",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -49,21 +58,21 @@ AUDIENCES = {
     "Equipment dealers": "OEMs and dealers positioning inventory where plants and warehouses are expanding",
 }
 
-INK = "#1C2430"
-MUTED = "#5C6B7A"
-PAPER = "#F7F4EC"
+INK = "#15202B"
+MUTED = "#4A5866"
+PAPER = "#F3EFE4"
 CARD = "#FFFFFF"
-NAVY = "#1F4E79"
-COPPER = "#B45309"
-GRID = "#E4DCCE"
-LAND = "#EDE6D6"
-WATER = "#D3E2EE"
-SUBUNIT = "#C9BFAE"
+NAVY = "#15456B"
+COPPER = "#A84812"
+GRID = "#DDD4C4"
+LAND = "#E7DECC"
+WATER = "#C5D7E8"
+SUBUNIT = "#C4B9A6"
 
 INDUSTRY_COLORS = {
-    "automotive": "#1F4E79",
-    "warehousing": "#B45309",
-    "food_manufacturing": "#3F6F4A",
+    "automotive": "#15456B",
+    "warehousing": "#A84812",
+    "food_manufacturing": "#2F6A45",
     "battery_manufacturing": "#6D28D9",
     "semiconductors": "#0F766E",
     "distribution_centers": "#9A3412",
@@ -101,67 +110,175 @@ SIZE_FILTERS = ("All sizes", "Small", "Medium", "Large", "Extra Large")
 MAP_POINT_CAP = 2000
 
 
+def inject_seo() -> None:
+    description = json.dumps(PAGE_DESCRIPTION)
+    title = json.dumps(PAGE_TITLE)
+    st.html(
+        f"""
+        <script>
+        (function () {{
+          const title = {title};
+          const description = {description};
+          function upsert(attr, key, content) {{
+            let el = document.querySelector('meta[' + attr + '="' + key + '"]');
+            if (!el) {{
+              el = document.createElement('meta');
+              el.setAttribute(attr, key);
+              document.head.appendChild(el);
+            }}
+            el.setAttribute('content', content);
+          }}
+          document.title = title;
+          upsert('name', 'description', description);
+          upsert('name', 'robots', 'index, follow');
+          upsert('name', 'googlebot', 'index, follow');
+          upsert('property', 'og:title', title);
+          upsert('property', 'og:description', description);
+          upsert('property', 'og:type', 'website');
+          upsert('name', 'twitter:card', 'summary');
+          upsert('name', 'twitter:title', title);
+          upsert('name', 'twitter:description', description);
+        }})();
+        </script>
+        """,
+        unsafe_allow_javascript=True,
+    )
+
+
 def inject_css() -> None:
-    st.markdown(
+    st.html(
         """
         <style>
-        @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap");
 
-        html, body, [class*="css"] { font-family: "IBM Plex Sans", sans-serif; }
-        .block-container { padding-top: 1.1rem; padding-bottom: 2.4rem; max-width: 1680px; }
-        header[data-testid="stHeader"] { background: rgba(247,244,236,0.92); }
-        h1, h2, h3 { font-family: "IBM Plex Serif", serif; letter-spacing: -0.02em; color: #1C2430; }
+        html, body, [class*="css"] { font-family: "IBM Plex Sans", sans-serif; color: #15202B; }
+        .block-container { padding-top: 1.15rem; padding-bottom: 2.6rem; max-width: 1680px; }
+        header[data-testid="stHeader"] { background: rgba(243,239,228,0.94); border-bottom: 1px solid #D6CCBB; }
+        h1, h2, h3 { font-family: "Source Serif 4", "IBM Plex Serif", serif; letter-spacing: -0.02em; color: #15202B; }
+        .hero-panel {
+            background: linear-gradient(165deg, #FFFFFF 0%, #F7F3EA 100%);
+            border: 1px solid #D6CCBB; border-radius: 16px;
+            box-shadow: 0 14px 36px rgba(21, 32, 43, 0.07);
+            padding: 1.35rem 1.55rem 1.2rem; margin: 0 0 1rem 0;
+        }
         .hero-kicker {
-            color: #B45309; font-size: 0.78rem; font-weight: 600;
-            letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.35rem;
+            color: #A84812; font-size: 0.78rem; font-weight: 600;
+            letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.4rem;
         }
         .hero-title {
-            font-family: "IBM Plex Serif", serif; font-size: 2.2rem; font-weight: 600;
-            line-height: 1.12; margin: 0 0 0.4rem 0; color: #1C2430;
+            font-family: "Source Serif 4", serif; font-size: 2.28rem; font-weight: 600;
+            line-height: 1.12; margin: 0 0 0.45rem 0; color: #15202B;
         }
-        .hero-sub { color: #5C6B7A; font-size: 1.02rem; max-width: 52rem; line-height: 1.45; }
+        .hero-sub { color: #4A5866; font-size: 1.04rem; max-width: 52rem; line-height: 1.5; margin: 0 0 0.7rem 0; }
+        .hero-about {
+            color: #15202B; font-size: 0.95rem; max-width: 54rem; line-height: 1.55;
+            margin: 0; padding-top: 0.55rem; border-top: 1px solid #E4D9C8;
+        }
         .market-banner {
-            border-left: 3px solid #B45309; background: #FFFFFF;
-            padding: 0.95rem 1.15rem; margin: 1rem 0 0.35rem 0;
+            background: #FFFFFF; padding: 0.95rem 1.15rem; margin: 0.9rem 0 0.2rem 0;
             color: #3A4654; font-size: 0.95rem; line-height: 1.5;
-            border: 1px solid #D9D0C2; border-left: 3px solid #B45309;
+            border: 1px solid #D6CCBB; border-left: 4px solid #A84812; border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(21, 32, 43, 0.04);
         }
-        .market-banner strong { color: #1C2430; }
-        .caption-src { color: #7A8794; font-size: 0.78rem; margin-top: 0.3rem; }
+        .market-banner strong { color: #15202B; }
+        .caption-src { color: #6B7784; font-size: 0.78rem; margin-top: 0.35rem; }
         div[data-testid="stMetric"] {
-            background: #FFFFFF; border: 1px solid #D9D0C2; padding: 0.85rem 1rem;
+            background: #FFFFFF; border: 1px solid #D6CCBB; border-radius: 12px;
+            padding: 0.9rem 1.05rem; box-shadow: 0 8px 22px rgba(21, 32, 43, 0.05);
         }
         div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-            color: #1C2430; font-family: "IBM Plex Serif", serif; font-weight: 600;
+            color: #15202B; font-family: "Source Serif 4", serif; font-weight: 600;
         }
-        .metro-card, .news-card {
-            background: #FFFFFF; border: 1px solid #D9D0C2; padding: 1.05rem 1.15rem;
+        div[data-testid="stMetric"] [data-testid="stMetricLabel"] { color: #4A5866; font-weight: 600; }
+        .metro-card, .news-card, .contact-card {
+            background: #FFFFFF; border: 1px solid #D6CCBB; border-radius: 14px;
+            padding: 1.1rem 1.2rem; box-shadow: 0 10px 28px rgba(21, 32, 43, 0.06);
         }
-        .metro-card h3, .news-card h3 {
-            font-family: "IBM Plex Serif", serif; margin: 0 0 0.2rem 0;
-            font-size: 1.35rem; color: #1C2430;
+        .metro-card h3, .news-card h3, .contact-card h3 {
+            font-family: "Source Serif 4", serif; margin: 0 0 0.25rem 0;
+            font-size: 1.35rem; color: #15202B;
         }
         .rank-pill {
-            display: inline-block; background: #1F4E79; color: #FFFFFF;
+            display: inline-block; background: #15456B; color: #FFFFFF;
             font-weight: 700; font-size: 0.75rem; letter-spacing: 0.04em;
-            padding: 0.15rem 0.5rem; margin-bottom: 0.45rem;
+            padding: 0.18rem 0.55rem; margin-bottom: 0.5rem; border-radius: 999px;
         }
-        .tagline { color: #B45309; font-size: 0.95rem; margin: 0.15rem 0 0.7rem 0; }
+        .tagline { color: #A84812; font-size: 0.95rem; margin: 0.15rem 0 0.7rem 0; }
         .section-label {
-            color: #B45309; font-size: 0.75rem; font-weight: 600;
+            color: #A84812; font-size: 0.75rem; font-weight: 600;
             letter-spacing: 0.14em; text-transform: uppercase; margin: 0.15rem 0 0.55rem 0;
         }
-        .news-item { padding: 0.7rem 0; border-bottom: 1px solid #E4DCCE; }
+        .news-item { padding: 0.7rem 0; border-bottom: 1px solid #DDD4C4; }
         .news-item:last-child { border-bottom: none; }
-        .news-date { color: #7A8794; font-size: 0.78rem; }
-        .company-web { color: #5C6B7A; font-size: 0.88rem; margin: 0.28rem 0 0.4rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .company-web a { color: #1F4E79; }
-        [data-testid="stSidebar"] { background: #F1EBDD; }
-        [data-testid="stSidebar"] h2 { font-family: "IBM Plex Serif", serif; }
+        .news-date { color: #6B7784; font-size: 0.78rem; }
+        .company-web { color: #4A5866; font-size: 0.88rem; margin: 0.28rem 0 0.4rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .company-web a { color: #15456B; }
+        [data-testid="stSidebar"] { background: #E6DCC8; }
+        [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+            font-family: "Source Serif 4", serif; color: #15202B;
+        }
+        [data-testid="stSidebar"] label { color: #15202B; font-weight: 600; }
+        [data-testid="stPlotlyChart"] {
+            background: #FFFFFF; border: 1px solid #D6CCBB; border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(21, 32, 43, 0.06); padding: 0.4rem;
+        }
+        div[data-testid="stTabs"] button[role="tab"] { font-weight: 600; }
+        .stButton button, .stDownloadButton button, .stFormSubmitButton button, .stLinkButton a {
+            border-radius: 8px !important; font-weight: 600 !important;
+            box-shadow: 0 1px 2px rgba(21, 32, 43, 0.08);
+        }
+        .stButton button:hover, .stDownloadButton button:hover, .stFormSubmitButton button:hover {
+            box-shadow: 0 6px 16px rgba(21, 69, 107, 0.16);
+        }
+        button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+            outline: 2px solid #15456B !important; outline-offset: 2px !important;
+        }
         </style>
-        """,
-        unsafe_allow_html=True,
+        """
     )
+
+
+def render_contact() -> None:
+    st.markdown('<div class="section-label">Contact us</div>', unsafe_allow_html=True)
+    left, right = st.columns([1.05, 1], gap="large")
+    with left:
+        st.markdown(
+            """
+            <div class="contact-card">
+                <div class="rank-pill">OPEN SOURCE</div>
+                <h3>US Manufacturing Opportunity Map</h3>
+                <div class="tagline">Code, issues, and architecture notes live on GitHub.</div>
+                <p>This map ranks US metros for manufacturing site selection and industrial real estate,
+                including forklifts, warehousing, battery plants, and semiconductors.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.link_button(
+            "Open the GitHub repository",
+            GITHUB_REPO,
+            icon=":material/code:",
+            type="primary",
+            width="stretch",
+        )
+        st.caption("https://github.com/kalyandhar84/US-Manufacturing-Opportunity-Map")
+    with right:
+        with st.form("contact_us_form", clear_on_submit=False, border=True):
+            st.subheader("Send a note")
+            name = st.text_input("Name")
+            email = st.text_input("Email")
+            company = st.text_input("Company (optional)")
+            message = st.text_area("Message", height=140)
+            submitted = st.form_submit_button("Send message", type="primary", icon=":material/send:")
+        if submitted:
+            error = validate_contact(name, email, message)
+            if error:
+                st.error(error, icon=":material/error:")
+            else:
+                path = save_contact_message(name=name, email=email, company=company, message=message)
+                st.success(f"Saved {path.name}.", icon=":material/check_circle:")
+        st.caption("Files land in mail/ on the server. App Service wwwroot is emptied on recycle.")
+
 
 
 def _html_text(value: object) -> str:
@@ -257,8 +374,8 @@ def map_figure(df: pd.DataFrame, selected: str) -> go.Figure:
                 colorscale=[
                     [0.0, "#9BB4C8"],
                     [0.45, "#4F7FA3"],
-                    [0.75, "#1F4E79"],
-                    [1.0, "#B45309"],
+                    [0.75, "#15456B"],
+                    [1.0, "#A84812"],
                 ],
                 cmin=float(df["score"].min()),
                 cmax=float(df["score"].max()),
@@ -351,7 +468,7 @@ def radar_figure(row: pd.Series) -> go.Figure:
             r=values + values[:1],
             theta=labels + labels[:1],
             fill="toself",
-            fillcolor="rgba(31,78,121,0.18)",
+            fillcolor="rgba(21,69,107,0.18)",
             line=dict(color=NAVY, width=2),
             hovertemplate="%{theta}: %{r:.0f}<extra></extra>",
         )
@@ -510,6 +627,7 @@ def cached_companies() -> pd.DataFrame:
     return load_companies_frame()
 
 
+inject_seo()
 inject_css()
 
 if "selected_metro" not in st.session_state:
@@ -524,7 +642,8 @@ projects = load_projects_frame()
 market = load_industrial_market()
 
 with st.sidebar:
-    st.markdown("## Filters")
+    st.markdown("### Filters")
+    st.caption("Industry, audience, and index weights for this session.")
     industry_key = st.selectbox(
         "Industry",
         options=list(INDUSTRIES.keys()),
@@ -541,7 +660,6 @@ with st.sidebar:
         value=0,
         format_func=lambda n: "No minimum" if n == 0 else f"{n/1_000_000:.1f}M+",
     )
-    st.markdown("---")
     st.markdown("**Index construction**")
     mode = st.radio(
         "Score mode",
@@ -559,7 +677,6 @@ with st.sidebar:
     if mode == "Equal-weight pillars":
         weights = {p: 0.2 for p in PILLARS}
         blend = 0.0
-    st.markdown("---")
     refresh = latest_refresh()
     if refresh:
         when = (refresh.get("finished_at") or refresh.get("started_at") or "")[:16].replace("T", " ")
@@ -588,19 +705,26 @@ if st.session_state.selected_metro not in options:
 
 st.markdown(
     f"""
-    <div class="hero-kicker">US Manufacturing Opportunity Map</div>
-    <div class="hero-title">Manufacturing Opportunity Index</div>
-    <p class="hero-sub">
-        Daylight view of metro scores and the companies already on the ground for
-        {profile.label.lower()}. Click the map. Built for {AUDIENCES[audience]}.
-    </p>
-    <div class="market-banner">
-        <strong>Wave 3 layer · Q2 2026 industrial reset.</strong>
-        US industrial demand exceeded new supply for the first time since 2022
-        (Colliers: 59 million sq ft absorbed, vacancy 7.3%). This view adds announced
-        capex, a company/news map, vacancy tilts, and a 2021–2026 score backcast.
+    <div class="hero-panel">
+        <div class="hero-kicker">US Manufacturing Opportunity Map</div>
+        <div class="hero-title">Manufacturing Opportunity Index</div>
+        <p class="hero-sub">
+            Daylight view of metro scores and the companies already on the ground for
+            {profile.label.lower()}. Click the map. Built for {AUDIENCES[audience]}.
+        </p>
+        <p class="hero-about">
+            About this map. A US manufacturing opportunity map for site selection and
+            industrial real estate, covering forklifts, warehousing, battery plants,
+            and semiconductors across ranked metros.
+        </p>
+        <div class="market-banner">
+            <strong>Wave 3 layer · Q2 2026 industrial reset.</strong>
+            US industrial demand exceeded new supply for the first time since 2022
+            (Colliers: 59 million sq ft absorbed, vacancy 7.3%). This view adds announced
+            capex, a company/news map, vacancy tilts, and a 2021–2026 score backcast.
+        </div>
+        <div class="caption-src">National vacancy print: Colliers U.S. Industrial Outlook, Q2 2026. Local vacancy is a model tilt, not licensed submarket data.</div>
     </div>
-    <div class="caption-src">National vacancy print: Colliers U.S. Industrial Outlook, Q2 2026. Local vacancy is a model tilt, not licensed submarket data.</div>
     """,
     unsafe_allow_html=True,
 )
@@ -617,7 +741,10 @@ k3.metric("Companies mapped", f"{len(industry_cos)}", profile.label, border=True
 k4.metric("Announced capex", f"${capex_sum:.0f}B", f"{jobs_sum:,} jobs", border=True)
 k5.metric("Natl. vacancy", "7.3%", "Colliers Q2 2026", border=True)
 
-tab_map, tab_cos = st.tabs(["Opportunity map", "Companies and news"], on_change="rerun")
+tab_map, tab_cos, tab_contact = st.tabs(
+    ["Opportunity map", "Companies and news", "Contact us"],
+    on_change="rerun",
+)
 
 with tab_map:
     st.markdown(f'<div class="section-label">{profile.label} · {region} · click a metro</div>', unsafe_allow_html=True)
@@ -730,7 +857,7 @@ with tab_map:
             names = [selected, *compare_to]
             cmp = scored[scored["short"].isin(names)].set_index("short").reindex(names)
             fig = go.Figure()
-            palette = ["#1F4E79", "#B45309", "#3F6F4A", "#0F766E", "#7C3AED"]
+            palette = ["#15456B", "#A84812", "#2F6A45", "#0F766E", "#7C3AED"]
             for i, pillar in enumerate(PILLARS):
                 fig.add_trace(go.Bar(name=PILLAR_LABELS[pillar], x=cmp.index, y=cmp[pillar], marker_color=palette[i]))
             fig.update_layout(
@@ -918,7 +1045,11 @@ with tab_cos:
                     )
                     st.dataframe(feed, hide_index=True, width="stretch", height=240)
 
-with st.expander("Methodology and Wave 3 data"):
+with tab_contact:
+    if tab_contact.open:
+        render_contact()
+
+with st.expander("Methodology and Wave 3 data", icon=":material/menu_book:"):
     st.markdown(
         textwrap.dedent(
             f"""

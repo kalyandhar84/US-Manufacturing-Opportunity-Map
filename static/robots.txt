@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Streamlit serves the interactive app at /. Google should index the public App Service HTTPS URL.
+# Static copy also lives at /app/static/robots.txt when static serving is enabled.
