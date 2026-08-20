@@ -58,25 +58,33 @@ AUDIENCES = {
     "Equipment dealers": "OEMs and dealers positioning inventory where plants and warehouses are expanding",
 }
 
-INK = "#15202B"
-MUTED = "#4A5866"
-PAPER = "#F3EFE4"
+INK = "#1A2332"
+MUTED = "#4A5A6A"
+PAPER = "#F7FBFF"
 CARD = "#FFFFFF"
-NAVY = "#15456B"
-COPPER = "#A84812"
-GRID = "#DDD4C4"
-LAND = "#E7DECC"
-WATER = "#C5D7E8"
-SUBUNIT = "#C4B9A6"
+NAVY = "#2B6CB0"
+COPPER = "#60A5FA"
+GRID = "#D7E6F4"
+LAND = "#F4F7FA"
+WATER = "#D6EAF8"
+SUBUNIT = "#B8D0E4"
+LINK = "#1D4E89"
+
+PAGES = ("Opportunity map", "Companies and news", "Contact us")
+PAGE_LABELS = {
+    "Opportunity map": ":material/map: Opportunity map",
+    "Companies and news": ":material/apartment: Companies and news",
+    "Contact us": ":material/mail: Contact us",
+}
 
 INDUSTRY_COLORS = {
-    "automotive": "#15456B",
-    "warehousing": "#A84812",
-    "food_manufacturing": "#2F6A45",
-    "battery_manufacturing": "#6D28D9",
-    "semiconductors": "#0F766E",
-    "distribution_centers": "#9A3412",
-    "materials_handling": "#0369A1",
+    "automotive": "#2B6CB0",
+    "warehousing": "#3B82C4",
+    "food_manufacturing": "#0F766E",
+    "battery_manufacturing": "#6366F1",
+    "semiconductors": "#0284C7",
+    "distribution_centers": "#1D4E89",
+    "materials_handling": "#3B82C4",
 }
 
 # Companies-tab map zones. Eastern (default) is the seaboard + Appalachia +
@@ -151,87 +159,106 @@ def inject_css() -> None:
         <style>
         @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap");
 
-        html, body, [class*="css"] { font-family: "IBM Plex Sans", sans-serif; color: #15202B; }
-        .block-container { padding-top: 1.15rem; padding-bottom: 2.6rem; max-width: 1680px; }
-        header[data-testid="stHeader"] { background: rgba(243,239,228,0.94); border-bottom: 1px solid #D6CCBB; }
-        h1, h2, h3 { font-family: "Source Serif 4", "IBM Plex Serif", serif; letter-spacing: -0.02em; color: #15202B; }
-        .hero-panel {
-            background: linear-gradient(165deg, #FFFFFF 0%, #F7F3EA 100%);
-            border: 1px solid #D6CCBB; border-radius: 16px;
-            box-shadow: 0 14px 36px rgba(21, 32, 43, 0.07);
-            padding: 1.35rem 1.55rem 1.2rem; margin: 0 0 1rem 0;
-        }
+        html, body, [class*="css"] { font-family: "IBM Plex Sans", sans-serif; color: #1A2332; }
+        .block-container { padding-top: 0.7rem; padding-bottom: 2.6rem; max-width: 1680px; }
+        header[data-testid="stHeader"] { background: rgba(247,251,255,0.94); border-bottom: 1px solid #D7E6F4; }
+        h1, h2, h3 { font-family: "Source Serif 4", "IBM Plex Serif", serif; letter-spacing: -0.02em; color: #1A2332; }
         .hero-kicker {
-            color: #A84812; font-size: 0.78rem; font-weight: 600;
-            letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.4rem;
+            color: #1D4E89; font-size: 0.78rem; font-weight: 600;
+            letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 0.25rem 0;
         }
         .hero-title {
-            font-family: "Source Serif 4", serif; font-size: 2.28rem; font-weight: 600;
-            line-height: 1.12; margin: 0 0 0.45rem 0; color: #15202B;
+            font-family: "Source Serif 4", serif; font-size: 1.85rem; font-weight: 600;
+            line-height: 1.15; margin: 0 0 0.35rem 0; color: #1A2332;
         }
-        .hero-sub { color: #4A5866; font-size: 1.04rem; max-width: 52rem; line-height: 1.5; margin: 0 0 0.7rem 0; }
-        .hero-about {
-            color: #15202B; font-size: 0.95rem; max-width: 54rem; line-height: 1.55;
-            margin: 0; padding-top: 0.55rem; border-top: 1px solid #E4D9C8;
-        }
+        .hero-sub { color: #4A5A6A; font-size: 0.98rem; max-width: 52rem; line-height: 1.45; margin: 0.35rem 0 0.65rem 0; }
         .market-banner {
-            background: #FFFFFF; padding: 0.95rem 1.15rem; margin: 0.9rem 0 0.2rem 0;
-            color: #3A4654; font-size: 0.95rem; line-height: 1.5;
-            border: 1px solid #D6CCBB; border-left: 4px solid #A84812; border-radius: 10px;
-            box-shadow: 0 6px 18px rgba(21, 32, 43, 0.04);
+            background: #FFFFFF; padding: 0.75rem 1.05rem; margin: 0.35rem 0 0.15rem 0;
+            color: #3A4654; font-size: 0.92rem; line-height: 1.45;
+            border: 1px solid #D7E6F4; border-left: 4px solid #3B82C4; border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(26, 35, 50, 0.04);
         }
-        .market-banner strong { color: #15202B; }
-        .caption-src { color: #6B7784; font-size: 0.78rem; margin-top: 0.35rem; }
+        .market-banner strong { color: #1A2332; }
+        .caption-src { color: #5B6B7A; font-size: 0.78rem; margin-top: 0.3rem; margin-bottom: 0.55rem; }
         div[data-testid="stMetric"] {
-            background: #FFFFFF; border: 1px solid #D6CCBB; border-radius: 12px;
-            padding: 0.9rem 1.05rem; box-shadow: 0 8px 22px rgba(21, 32, 43, 0.05);
+            background: #FFFFFF; border: 1px solid #D7E6F4; border-radius: 12px;
+            padding: 0.9rem 1.05rem; box-shadow: 0 8px 22px rgba(26, 35, 50, 0.04);
         }
         div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-            color: #15202B; font-family: "Source Serif 4", serif; font-weight: 600;
+            color: #1A2332; font-family: "Source Serif 4", serif; font-weight: 600;
         }
-        div[data-testid="stMetric"] [data-testid="stMetricLabel"] { color: #4A5866; font-weight: 600; }
+        div[data-testid="stMetric"] [data-testid="stMetricLabel"] { color: #4A5A6A; font-weight: 600; }
         .metro-card, .news-card, .contact-card {
-            background: #FFFFFF; border: 1px solid #D6CCBB; border-radius: 14px;
-            padding: 1.1rem 1.2rem; box-shadow: 0 10px 28px rgba(21, 32, 43, 0.06);
+            background: #FFFFFF; border: 1px solid #D7E6F4; border-radius: 14px;
+            padding: 1.1rem 1.2rem; box-shadow: 0 10px 28px rgba(26, 35, 50, 0.05);
         }
         .metro-card h3, .news-card h3, .contact-card h3 {
             font-family: "Source Serif 4", serif; margin: 0 0 0.25rem 0;
-            font-size: 1.35rem; color: #15202B;
+            font-size: 1.35rem; color: #1A2332;
         }
         .rank-pill {
-            display: inline-block; background: #15456B; color: #FFFFFF;
+            display: inline-block; background: #2B6CB0; color: #FFFFFF;
             font-weight: 700; font-size: 0.75rem; letter-spacing: 0.04em;
             padding: 0.18rem 0.55rem; margin-bottom: 0.5rem; border-radius: 999px;
         }
-        .tagline { color: #A84812; font-size: 0.95rem; margin: 0.15rem 0 0.7rem 0; }
+        .tagline { color: #1D4E89; font-size: 0.95rem; margin: 0.15rem 0 0.7rem 0; }
         .section-label {
-            color: #A84812; font-size: 0.75rem; font-weight: 600;
+            color: #1D4E89; font-size: 0.75rem; font-weight: 600;
             letter-spacing: 0.14em; text-transform: uppercase; margin: 0.15rem 0 0.55rem 0;
         }
-        .news-item { padding: 0.7rem 0; border-bottom: 1px solid #DDD4C4; }
+        .news-item { padding: 0.7rem 0; border-bottom: 1px solid #D7E6F4; }
         .news-item:last-child { border-bottom: none; }
-        .news-date { color: #6B7784; font-size: 0.78rem; }
-        .company-web { color: #4A5866; font-size: 0.88rem; margin: 0.28rem 0 0.4rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .company-web a { color: #15456B; }
-        [data-testid="stSidebar"] { background: #E6DCC8; }
+        .news-date { color: #5B6B7A; font-size: 0.78rem; }
+        .company-web { color: #4A5A6A; font-size: 0.88rem; margin: 0.28rem 0 0.4rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .company-web a { color: #1D4E89; }
+        .contact-byline { color: #4A5A6A; font-size: 0.8rem; margin: 0.4rem 0 0.15rem 0; }
+        [data-testid="stSidebar"] { background: #E8F3FC; }
         [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-            font-family: "Source Serif 4", serif; color: #15202B;
+            font-family: "Source Serif 4", serif; color: #1A2332;
         }
-        [data-testid="stSidebar"] label { color: #15202B; font-weight: 600; }
+        [data-testid="stSidebar"] label { color: #1A2332; font-weight: 600; }
         [data-testid="stPlotlyChart"] {
-            background: #FFFFFF; border: 1px solid #D6CCBB; border-radius: 14px;
-            box-shadow: 0 12px 30px rgba(21, 32, 43, 0.06); padding: 0.4rem;
+            background: #FFFFFF; border: 1px solid #D7E6F4; border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(26, 35, 50, 0.05); padding: 0.4rem;
         }
-        div[data-testid="stTabs"] button[role="tab"] { font-weight: 600; }
+        .st-key-page_nav { margin: 0.1rem 0 0.55rem 0; }
+        .st-key-page_nav .stButtonGroup,
+        .st-key-page_nav [data-testid="stButtonGroup"],
+        .st-key-page_nav [role="radiogroup"] {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            overflow: visible !important;
+        }
+        .st-key-page_nav button {
+            flex: 1 1 12.5rem !important;
+            min-width: 12.5rem !important;
+            max-width: none !important;
+            height: auto !important;
+            min-height: 2.85rem !important;
+            font-size: 0.98rem !important;
+            font-weight: 600 !important;
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+        .st-key-page_nav button div,
+        .st-key-page_nav button p,
+        .st-key-page_nav button span {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: nowrap !important;
+        }
         .stButton button, .stDownloadButton button, .stFormSubmitButton button, .stLinkButton a {
             border-radius: 8px !important; font-weight: 600 !important;
-            box-shadow: 0 1px 2px rgba(21, 32, 43, 0.08);
+            box-shadow: 0 1px 2px rgba(26, 35, 50, 0.08);
         }
         .stButton button:hover, .stDownloadButton button:hover, .stFormSubmitButton button:hover {
-            box-shadow: 0 6px 16px rgba(21, 69, 107, 0.16);
+            box-shadow: 0 6px 16px rgba(43, 108, 176, 0.18);
         }
         button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-            outline: 2px solid #15456B !important; outline-offset: 2px !important;
+            outline: 2px solid #2B6CB0 !important; outline-offset: 2px !important;
         }
         </style>
         """
@@ -261,6 +288,7 @@ def render_contact() -> None:
             type="primary",
             width="stretch",
         )
+        st.markdown('<p class="contact-byline">Kalyan Dhar</p>', unsafe_allow_html=True)
         st.caption("https://github.com/kalyandhar84/US-Manufacturing-Opportunity-Map")
     with right:
         with st.form("contact_us_form", clear_on_submit=False, border=True):
@@ -372,10 +400,10 @@ def map_figure(df: pd.DataFrame, selected: str) -> go.Figure:
                 size=sizes,
                 color=df["score"],
                 colorscale=[
-                    [0.0, "#9BB4C8"],
-                    [0.45, "#4F7FA3"],
-                    [0.75, "#15456B"],
-                    [1.0, "#A84812"],
+                    [0.0, "#B8D4EA"],
+                    [0.45, "#60A5FA"],
+                    [0.75, "#3B82C4"],
+                    [1.0, "#1D4E89"],
                 ],
                 cmin=float(df["score"].min()),
                 cmax=float(df["score"].max()),
@@ -446,7 +474,7 @@ def company_map_figure(df: pd.DataFrame, selected_id: str | None) -> go.Figure:
                     lon=sel["lon"],
                     lat=sel["lat"],
                     mode="markers",
-                    marker=dict(size=22, color="rgba(0,0,0,0)", line=dict(width=2.4, color=COPPER)),
+                    marker=dict(size=22, color="rgba(0,0,0,0)", line=dict(width=2.4, color=LINK)),
                     hoverinfo="skip",
                     showlegend=False,
                 )
@@ -468,7 +496,7 @@ def radar_figure(row: pd.Series) -> go.Figure:
             r=values + values[:1],
             theta=labels + labels[:1],
             fill="toself",
-            fillcolor="rgba(21,69,107,0.18)",
+            fillcolor="rgba(43,108,176,0.18)",
             line=dict(color=NAVY, width=2),
             hovertemplate="%{theta}: %{r:.0f}<extra></extra>",
         )
@@ -648,6 +676,7 @@ if "selected_metro" not in st.session_state:
     st.session_state.selected_metro = "Dallas"
 if "selected_company" not in st.session_state:
     st.session_state.selected_company = "hyundai-savannah"
+st.session_state.setdefault("app_page", PAGES[0])
 
 db_mtime = sqlite_mtime()
 raw = cached_metros(db_mtime)
@@ -719,27 +748,40 @@ if st.session_state.selected_metro not in options:
     st.session_state.selected_metro = options[0]
 
 st.markdown(
+    """
+    <div class="hero-kicker">US Manufacturing Opportunity Map</div>
+    <div class="hero-title">Manufacturing Opportunity Index</div>
+    """,
+    unsafe_allow_html=True,
+)
+
+page = st.segmented_control(
+    "Page",
+    options=list(PAGES),
+    default=PAGES[0],
+    key="app_page",
+    width="stretch",
+    label_visibility="collapsed",
+    required=True,
+    persist_state="session",
+    format_func=lambda name: PAGE_LABELS[name],
+)
+if page not in PAGES:
+    page = PAGES[0]
+
+st.markdown(
     f"""
-    <div class="hero-panel">
-        <div class="hero-kicker">US Manufacturing Opportunity Map</div>
-        <div class="hero-title">Manufacturing Opportunity Index</div>
-        <p class="hero-sub">
-            Daylight view of metro scores and the companies already on the ground for
-            {profile.label.lower()}. Click the map. Built for {AUDIENCES[audience]}.
-        </p>
-        <p class="hero-about">
-            About this map. A US manufacturing opportunity map for site selection and
-            industrial real estate, covering forklifts, warehousing, battery plants,
-            and semiconductors across ranked metros.
-        </p>
-        <div class="market-banner">
-            <strong>Wave 3 layer · Q2 2026 industrial reset.</strong>
-            US industrial demand exceeded new supply for the first time since 2022
-            (Colliers: 59 million sq ft absorbed, vacancy 7.3%). This view adds announced
-            capex, a company/news map, vacancy tilts, and a 2021–2026 score backcast.
-        </div>
-        <div class="caption-src">National vacancy print: Colliers U.S. Industrial Outlook, Q2 2026. Local vacancy is a model tilt, not licensed submarket data.</div>
+    <p class="hero-sub">
+        Daylight view of metro scores and the companies already on the ground for
+        {profile.label.lower()}. Click the map. Built for {AUDIENCES[audience]}.
+    </p>
+    <div class="market-banner">
+        <strong>Wave 3 layer · Q2 2026 industrial reset.</strong>
+        US industrial demand exceeded new supply for the first time since 2022
+        (Colliers: 59 million sq ft absorbed, vacancy 7.3%). This view adds announced
+        capex, a company/news map, vacancy tilts, and a 2021–2026 score backcast.
     </div>
+    <div class="caption-src">National vacancy print: Colliers U.S. Industrial Outlook, Q2 2026. Local vacancy is a model tilt, not licensed submarket data.</div>
     """,
     unsafe_allow_html=True,
 )
@@ -749,19 +791,15 @@ industry_projects = projects[projects["industry"] == industry_key] if not projec
 capex_sum = float(industry_projects["capex_b"].sum()) if not industry_projects.empty else 0.0
 jobs_sum = int(industry_projects["jobs"].sum()) if not industry_projects.empty else 0
 
-k1, k2, k3, k4, k5 = st.columns(5)
-k1.metric("Top metro", f"{top['short']}", f"MOI {top['score']:.1f}", border=True)
-k2.metric("Panel median", f"{median:.1f}", border=True)
-k3.metric("Companies mapped", f"{len(industry_cos)}", profile.label, border=True)
-k4.metric("Announced capex", f"${capex_sum:.0f}B", f"{jobs_sum:,} jobs", border=True)
-k5.metric("Natl. vacancy", "7.3%", "Colliers Q2 2026", border=True)
+if page != "Contact us":
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Top metro", f"{top['short']}", f"MOI {top['score']:.1f}", border=True)
+    k2.metric("Panel median", f"{median:.1f}", border=True)
+    k3.metric("Companies mapped", f"{len(industry_cos)}", profile.label, border=True)
+    k4.metric("Announced capex", f"${capex_sum:.0f}B", f"{jobs_sum:,} jobs", border=True)
+    k5.metric("Natl. vacancy", "7.3%", "Colliers Q2 2026", border=True)
 
-tab_map, tab_cos, tab_contact = st.tabs(
-    ["Opportunity map", "Companies and news", "Contact us"],
-    on_change="rerun",
-)
-
-with tab_map:
+if page == "Opportunity map":
     st.markdown(f'<div class="section-label">{profile.label} · {region} · click a metro</div>', unsafe_allow_html=True)
     fig = map_figure(scored, st.session_state.selected_metro)
     event = st.plotly_chart(
@@ -872,7 +910,7 @@ with tab_map:
             names = [selected, *compare_to]
             cmp = scored[scored["short"].isin(names)].set_index("short").reindex(names)
             fig = go.Figure()
-            palette = ["#15456B", "#A84812", "#2F6A45", "#0F766E", "#7C3AED"]
+            palette = ["#2B6CB0", "#3B82C4", "#0F766E", "#0284C7", "#6366F1"]
             for i, pillar in enumerate(PILLARS):
                 fig.add_trace(go.Bar(name=PILLAR_LABELS[pillar], x=cmp.index, y=cmp[pillar], marker_color=palette[i]))
             fig.update_layout(
@@ -887,182 +925,187 @@ with tab_map:
             )
             st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 
-with tab_cos:
-    if tab_cos.open:
-        st.markdown(
-            f'<div class="section-label">{profile.label} facilities · EPA TRI + USDA FSIS + OSHA ITA · click a site</div>',
-            unsafe_allow_html=True,
-        )
-        if industry_cos.empty:
-            st.info("No companies for this industry. Run `python refresh_data.py --seed-only` to ingest TRI, FSIS, and OSHA ITA.")
+elif page == "Companies and news":
+    st.markdown(
+        f'<div class="section-label">{profile.label} facilities · EPA TRI + USDA FSIS + OSHA ITA · click a site</div>',
+        unsafe_allow_html=True,
+    )
+    if industry_cos.empty:
+        st.info("No companies for this industry. Run `python refresh_data.py --seed-only` to ingest TRI, FSIS, and OSHA ITA.")
+    else:
+        if "source" not in industry_cos.columns:
+            industry_cos = industry_cos.copy()
+            industry_cos["source"] = "curated"
+        for col in ("parent", "naics", "state", "address"):
+            if col not in industry_cos.columns:
+                industry_cos[col] = ""
+            industry_cos[col] = industry_cos[col].fillna("")
+        if "size_class" not in industry_cos.columns:
+            industry_cos["size_class"] = "Unknown"
         else:
-            if "source" not in industry_cos.columns:
-                industry_cos = industry_cos.copy()
-                industry_cos["source"] = "curated"
-            for col in ("parent", "naics", "state", "address"):
-                if col not in industry_cos.columns:
-                    industry_cos[col] = ""
-                industry_cos[col] = industry_cos[col].fillna("")
-            if "size_class" not in industry_cos.columns:
-                industry_cos["size_class"] = "Unknown"
-            else:
-                industry_cos["size_class"] = industry_cos["size_class"].fillna("Unknown")
+            industry_cos["size_class"] = industry_cos["size_class"].fillna("Unknown")
 
-            filter_row = st.container(horizontal=True, vertical_alignment="bottom")
-            with filter_row:
-                zone = st.selectbox(
-                    "Zone",
-                    options=list(ZONE_STATES.keys()),
-                    index=0,
-                    key="company_zone",
-                    help="Eastern (default) is the Atlantic seaboard, Florida, and the OH–MI–IN–KY–TN industrial belt.",
-                )
-                size_choice = st.segmented_control(
-                    "Company size",
-                    options=list(SIZE_FILTERS),
-                    default="All sizes",
-                    key="company_size",
-                    help="OSHA ITA annual average employees. TRI, FSIS, and curated campuses are Unknown and hidden unless All sizes is selected.",
-                )
-            query = st.text_input("Search company, city, parent, or metro", "", key="company_search")
-            view = filter_company_view(industry_cos, zone, size_choice or "All sizes", query)
-            src_counts = view["source"].fillna("unknown").value_counts() if not view.empty else pd.Series(dtype=int)
-            map_view = view
-            map_note = ""
-            if len(view) > MAP_POINT_CAP:
-                map_view = view.sample(n=MAP_POINT_CAP, random_state=1)
-                map_note = f" Map plots {len(map_view):,} of {len(view):,} filtered sites."
-            st.caption(
-                f"{len(map_view):,} shown of {len(view):,} after filters · {len(industry_cos):,} {profile.label} nationwide. "
-                + " · ".join(f"{k} {int(v):,}" for k, v in src_counts.items())
-                + map_note
+        filter_row = st.container(horizontal=True, vertical_alignment="bottom")
+        with filter_row:
+            zone = st.selectbox(
+                "Zone",
+                options=list(ZONE_STATES.keys()),
+                index=0,
+                key="company_zone",
+                persist_state="session",
+                help="Eastern (default) is the Atlantic seaboard, Florida, and the OH–MI–IN–KY–TN industrial belt.",
             )
+            size_choice = st.segmented_control(
+                "Company size",
+                options=list(SIZE_FILTERS),
+                default="All sizes",
+                key="company_size",
+                persist_state="session",
+                help="OSHA ITA annual average employees. TRI, FSIS, and curated campuses are Unknown and hidden unless All sizes is selected.",
+            )
+        query = st.text_input(
+            "Search company, city, parent, or metro",
+            "",
+            key="company_search",
+            persist_state="session",
+        )
+        view = filter_company_view(industry_cos, zone, size_choice or "All sizes", query)
+        src_counts = view["source"].fillna("unknown").value_counts() if not view.empty else pd.Series(dtype=int)
+        map_view = view
+        map_note = ""
+        if len(view) > MAP_POINT_CAP:
+            map_view = view.sample(n=MAP_POINT_CAP, random_state=1)
+            map_note = f" Map plots {len(map_view):,} of {len(view):,} filtered sites."
+        st.caption(
+            f"{len(map_view):,} shown of {len(view):,} after filters · {len(industry_cos):,} {profile.label} nationwide. "
+            + " · ".join(f"{k} {int(v):,}" for k, v in src_counts.items())
+            + map_note
+        )
 
-            if view.empty:
-                st.info("No facilities match this zone, size, and search. Try All US or All sizes.")
-            else:
-                view_ids = set(view["id"])
-                if st.session_state.selected_company not in view_ids:
-                    st.session_state.selected_company = view.iloc[0]["id"]
+        if view.empty:
+            st.info("No facilities match this zone, size, and search. Try All US or All sizes.")
+        else:
+            view_ids = set(view["id"])
+            if st.session_state.selected_company not in view_ids:
+                st.session_state.selected_company = view.iloc[0]["id"]
 
-                cmap = company_map_figure(map_view, st.session_state.selected_company)
-                cevent = st.plotly_chart(
-                    cmap,
-                    width="stretch",
-                    key="company_map",
-                    on_select="rerun",
-                    selection_mode="points",
-                    config={"displayModeBar": False},
+            cmap = company_map_figure(map_view, st.session_state.selected_company)
+            cevent = st.plotly_chart(
+                cmap,
+                width="stretch",
+                key="company_map",
+                on_select="rerun",
+                selection_mode="points",
+                config={"displayModeBar": False},
+            )
+            cid = selection_id(cevent, "id")
+            if cid and cid in view_ids:
+                st.session_state.selected_company = cid
+            if st.session_state.selected_company not in view_ids:
+                st.session_state.selected_company = view.iloc[0]["id"]
+            company = view[view["id"] == st.session_state.selected_company].iloc[0]
+            headlines = news_all[news_all["company_id"] == company["id"]] if not news_all.empty else news_all
+            source_label = {
+                "epa_tri": "EPA Toxics Release Inventory (2024)",
+                "usda_fsis": "USDA FSIS Meat, Poultry and Egg Product Inspection Directory",
+                "osha_ita": "OSHA Injury Tracking Application (Form 300A) · ZIP centroid",
+                "curated": "Tracked campus (public announcements)",
+            }.get(str(company.get("source") or "curated"), str(company.get("source")))
+
+            detail, roster = st.columns([1, 1.15], gap="large")
+            with detail:
+                st.markdown('<div class="section-label">Selected company</div>', unsafe_allow_html=True)
+                extra = []
+                if company.get("naics"):
+                    extra.append(f"NAICS {company['naics']}")
+                if company.get("parent"):
+                    extra.append(str(company["parent"]))
+                size_label = str(company.get("size_class") or "Unknown")
+                employees = company.get("employees")
+                if size_label and size_label != "Unknown":
+                    extra.append(size_label if pd.isna(employees) else f"{size_label} ({int(employees):,} employees)")
+                extra.append(source_label)
+                website_html = company_website_html(company)
+                st.markdown(
+                    f"""
+                    <div class="news-card">
+                        <div class="rank-pill">{_html_text(str(company["segment"] or "Facility").upper())}</div>
+                        <h3>{_html_text(company["name"])}</h3>
+                        <div class="tagline">{_html_text(company["city"])} · {_html_text(company["metro"])}</div>
+                        <div>{_html_text(company.get("site") or company.get("address") or "")}</div>
+                        {website_html}
+                        <div class="news-date">{_html_text(" · ".join(extra))}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
-                cid = selection_id(cevent, "id")
-                if cid and cid in view_ids:
-                    st.session_state.selected_company = cid
-                if st.session_state.selected_company not in view_ids:
-                    st.session_state.selected_company = view.iloc[0]["id"]
-                company = view[view["id"] == st.session_state.selected_company].iloc[0]
-                headlines = news_all[news_all["company_id"] == company["id"]] if not news_all.empty else news_all
-                source_label = {
-                    "epa_tri": "EPA Toxics Release Inventory (2024)",
-                    "usda_fsis": "USDA FSIS Meat, Poultry and Egg Product Inspection Directory",
-                    "osha_ita": "OSHA Injury Tracking Application (Form 300A) · ZIP centroid",
-                    "curated": "Tracked campus (public announcements)",
-                }.get(str(company.get("source") or "curated"), str(company.get("source")))
-
-                detail, roster = st.columns([1, 1.15], gap="large")
-                with detail:
-                    st.markdown('<div class="section-label">Selected company</div>', unsafe_allow_html=True)
-                    extra = []
-                    if company.get("naics"):
-                        extra.append(f"NAICS {company['naics']}")
-                    if company.get("parent"):
-                        extra.append(str(company["parent"]))
-                    size_label = str(company.get("size_class") or "Unknown")
-                    employees = company.get("employees")
-                    if size_label and size_label != "Unknown":
-                        extra.append(size_label if pd.isna(employees) else f"{size_label} ({int(employees):,} employees)")
-                    extra.append(source_label)
-                    website_html = company_website_html(company)
-                    st.markdown(
-                        f"""
-                        <div class="news-card">
-                            <div class="rank-pill">{_html_text(str(company["segment"] or "Facility").upper())}</div>
-                            <h3>{_html_text(company["name"])}</h3>
-                            <div class="tagline">{_html_text(company["city"])} · {_html_text(company["metro"])}</div>
-                            <div>{_html_text(company.get("site") or company.get("address") or "")}</div>
-                            {website_html}
-                            <div class="news-date">{_html_text(" · ".join(extra))}</div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
+                st.markdown("**Latest developments**")
+                if headlines.empty:
+                    st.caption(
+                        "No curated headline for this facility. TRI, FSIS, and OSHA ITA are federal plant/warehouse directories — "
+                        "click a tracked campus (Tesla, TSMC, Hyundai, FedEx) for announcement notes."
                     )
-                    st.markdown("**Latest developments**")
-                    if headlines.empty:
-                        st.caption(
-                            "No curated headline for this facility. TRI, FSIS, and OSHA ITA are federal plant/warehouse directories — "
-                            "click a tracked campus (Tesla, TSMC, Hyundai, FedEx) for announcement notes."
+                else:
+                    for _, item in headlines.iterrows():
+                        link = f'<div class="news-date">{item["published_on"]} · {item["source"]}</div>'
+                        href = f'<p><a href="{item["url"]}" target="_blank">{item["headline"]}</a></p>' if item.get("url") else f'<p>{item["headline"]}</p>'
+                        st.markdown(
+                            f'<div class="news-item">{link}{href}<p>{item["summary"]}</p></div>',
+                            unsafe_allow_html=True,
                         )
-                    else:
-                        for _, item in headlines.iterrows():
-                            link = f'<div class="news-date">{item["published_on"]} · {item["source"]}</div>'
-                            href = f'<p><a href="{item["url"]}" target="_blank">{item["headline"]}</a></p>' if item.get("url") else f'<p>{item["headline"]}</p>'
-                            st.markdown(
-                                f'<div class="news-item">{link}{href}<p>{item["summary"]}</p></div>',
-                                unsafe_allow_html=True,
-                            )
 
-                with roster:
-                    st.markdown('<div class="section-label">Industry roster</div>', unsafe_allow_html=True)
-                    show_cols = [
-                        c for c in ["name", "metro", "city", "state", "naics", "size_class", "employees", "parent", "source"]
-                        if c in view.columns
-                    ]
-                    show = view[show_cols].rename(
+            with roster:
+                st.markdown('<div class="section-label">Industry roster</div>', unsafe_allow_html=True)
+                show_cols = [
+                    c for c in ["name", "metro", "city", "state", "naics", "size_class", "employees", "parent", "source"]
+                    if c in view.columns
+                ]
+                show = view[show_cols].rename(
+                    columns={
+                        "name": "Company",
+                        "metro": "Metro",
+                        "city": "City",
+                        "state": "ST",
+                        "naics": "NAICS",
+                        "size_class": "Size",
+                        "employees": "Employees",
+                        "parent": "Parent",
+                        "source": "Source",
+                    }
+                )
+                st.dataframe(show, hide_index=True, width="stretch", height=360)
+                st.markdown("**Announced capex in this industry**")
+                if industry_projects.empty:
+                    st.caption("No Wave 3 projects tagged to this industry.")
+                else:
+                    pshow = industry_projects[["company", "metro", "year", "capex_b", "jobs", "status"]].rename(
                         columns={
-                            "name": "Company",
+                            "company": "Company",
                             "metro": "Metro",
-                            "city": "City",
-                            "state": "ST",
-                            "naics": "NAICS",
-                            "size_class": "Size",
-                            "employees": "Employees",
-                            "parent": "Parent",
-                            "source": "Source",
+                            "year": "Year",
+                            "capex_b": "Capex $B",
+                            "jobs": "Jobs",
+                            "status": "Status",
                         }
                     )
-                    st.dataframe(show, hide_index=True, width="stretch", height=360)
-                    st.markdown("**Announced capex in this industry**")
-                    if industry_projects.empty:
-                        st.caption("No Wave 3 projects tagged to this industry.")
-                    else:
-                        pshow = industry_projects[["company", "metro", "year", "capex_b", "jobs", "status"]].rename(
-                            columns={
-                                "company": "Company",
-                                "metro": "Metro",
-                                "year": "Year",
-                                "capex_b": "Capex $B",
-                                "jobs": "Jobs",
-                                "status": "Status",
-                            }
-                        )
-                        st.dataframe(pshow, hide_index=True, width="stretch", height=220)
+                    st.dataframe(pshow, hide_index=True, width="stretch", height=220)
 
-                st.markdown('<div class="section-label">Recent headlines · tracked campuses in this industry</div>', unsafe_allow_html=True)
-                industry_news = news_all[news_all["industry"] == industry_key] if not news_all.empty else news_all
-                if not industry_news.empty:
-                    feed = industry_news[["published_on", "company_name", "metro", "headline", "source"]].rename(
-                        columns={
-                            "published_on": "Date",
-                            "company_name": "Company",
-                            "metro": "Metro",
-                            "headline": "Headline",
-                            "source": "Source",
-                        }
-                    )
-                    st.dataframe(feed, hide_index=True, width="stretch", height=240)
+            st.markdown('<div class="section-label">Recent headlines · tracked campuses in this industry</div>', unsafe_allow_html=True)
+            industry_news = news_all[news_all["industry"] == industry_key] if not news_all.empty else news_all
+            if not industry_news.empty:
+                feed = industry_news[["published_on", "company_name", "metro", "headline", "source"]].rename(
+                    columns={
+                        "published_on": "Date",
+                        "company_name": "Company",
+                        "metro": "Metro",
+                        "headline": "Headline",
+                        "source": "Source",
+                    }
+                )
+                st.dataframe(feed, hide_index=True, width="stretch", height=240)
 
-with tab_contact:
-    if tab_contact.open:
-        render_contact()
+elif page == "Contact us":
+    render_contact()
 
 with st.expander("Methodology and Wave 3 data", icon=":material/menu_book:"):
     st.markdown(
@@ -1082,7 +1125,7 @@ with st.expander("Methodology and Wave 3 data", icon=":material/menu_book:"):
             Form 300A establishments (NAICS 3361–3363 auto, 311/3121 food and beverage,
             3344 semiconductors, 33591 batteries, 33392 materials handling / forklifts,
             493 warehouses, plus fulfillment / distribution-center name matches).
-            OSHA points use Census ZIP centroids. The companies tab defaults to the
+            OSHA points use Census ZIP centroids. Companies and news defaults to the
             Eastern zone so the map stays usable.
             Run `python refresh_data.py --seed-only` to re-download files into
             `data/raw/` and reload SQLite.
